@@ -1,0 +1,132 @@
+package ru.ifmo.ctddev.paragen.mathLogic;
+
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class ExpressionParser {
+
+    protected List<ExpressionTree> axiomList;
+    protected List<ExpressionTree> proofList;
+
+    ExpressionParser() {
+        axiomList = new ArrayList<>();
+        setAxioms().forEach((String s)-> {
+            axiomList.add(new AxiomTree(s));
+        });
+        proofList = new ArrayList<>();
+    }
+
+    protected List<String> setAxioms() {
+        List<String> str = Arrays.asList("(a->b->a",
+                "(a->b)->(a->b->c)->(a->c)",
+                "a->b->a&b",
+                "a&b->a",
+                "a&b->b",
+                "a->a|b",
+                "b->a|b",
+                "(a->c)->(b->c)->(a|b->c)",
+                "(a->b)->(a->!b)->!a",
+                "!!a->a");
+        return str;
+    }
+
+    void run(String in, String out) {
+        try {
+            final PrintWriter writer = new PrintWriter(new File(out));
+            final BufferedReader reader = new BufferedReader(new FileReader(new File(in)));
+            String s;
+            for (int i = 1; (s = reader.readLine()) != null; ++i) {
+                writer.println("(" + i + ") " + s + " (" + check(s) + ")");
+            }
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private String check(String s) {
+        ExpressionTree curr = new ExpressionTree(s);
+        String ans = "Не доказано";
+        int num = checkAxioms(curr);
+
+        if (num != 0) {
+            ans =  "Сх. акс. " + num;
+        } else {
+
+            Pair pair = checkMP(curr);
+
+            if (pair != null) {
+                ans =  "M.P. " + pair.first + ", " + pair.second;
+            }
+        }
+
+        proofList.add(curr);
+
+        return ans;
+    }
+
+    protected int checkAxioms(ExpressionTree curr) {
+        for (int i = 0; i < 10; ++i) {
+            if (axiomList.get(i).equals(curr)) {
+                return i+1;
+            }
+        }
+        return 0;
+    }
+
+    protected Pair checkMP(ExpressionTree curr) {
+
+        Pair pair = new Pair();
+        ExpressionTree tmp;
+        for (int i = 0; i < proofList.size(); ++i) {
+            tmp = proofList.get(i).checkMP(curr);
+            if (tmp != null) {
+                for (int j = 0; j < proofList.size(); ++j) {
+                    if (tmp.equals(proofList.get(j))) {
+                        pair.first = j + 1;
+                        pair.second = i + 1;
+                        return pair;
+                    }
+                }
+            }
+        }
+
+
+        return null;
+    }
+
+    protected class Pair {
+        int first,second;
+    }
+    public static void main(String[] args) {
+
+        new ExpressionParser().run("/home/ouroboros/lol1.in","/home/ouroboros/lol1.out");
+        new ExpressionParser().run("/home/ouroboros/lol2.in","/home/ouroboros/lol2.out");
+        new ExpressionParser().run("/home/ouroboros/lol3.in","/home/ouroboros/lol3.out");
+        final String in = "/home/ouroboros/gitRepositories/logic2014/tests/HW1/" , out = "/home/ouroboros/";
+        long inTime ;
+        for (int i = 1; i < 7; ++i) {
+            if (i == 2) {
+                ++i;
+            }
+            System.out.println("Testing good " + i);
+            inTime = System.currentTimeMillis();
+            new ExpressionParser().run(in + "good" + i + ".in", out + "good" + i + ".out" );
+            System.out.println("Done in: " + (((double) System.currentTimeMillis() - inTime) / 1000) + " s");
+        }
+        for (int i = 1; i < 7; ++i) {
+            System.out.println("Testing wrong " + i);
+            inTime = System.currentTimeMillis();
+            new ExpressionParser().run(in + "wrong" + i + ".in", out + "wrong" + i + ".out" );
+            System.out.println("Done in: " + (((double) System.currentTimeMillis() - inTime) / 1000) + " s");
+
+        }
+    }
+}
+
+
