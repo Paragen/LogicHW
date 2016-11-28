@@ -13,18 +13,11 @@ public class Task2 extends ExpressionParser {
 
 
     List<ExpressionTree> assumptionList;
-    List<String> sourceAxioms, sourceProof, sourceAssumption;
-    String A;
-    ExpressionTree pA;
+    ExpressionTree A;
     PrintWriter writer;
 
     public Task2() {
-
         super();
-        assumptionList = new ArrayList<>();
-        sourceProof = new ArrayList<>();
-        sourceAxioms = setAxioms();
-        sourceAssumption = new ArrayList<>();
 
     }
 
@@ -33,53 +26,66 @@ public class Task2 extends ExpressionParser {
         try {
             writer = new PrintWriter(out);
             final BufferedReader reader = new BufferedReader(new FileReader(in));
+            List<ExpressionTree> assumption = new ArrayList<>();
             String header = reader.readLine();
             String[] array = header.split(",");
+            StringBuilder builder = new StringBuilder();
             for (int i = 0; i < array.length - 1; ++i) {
-                assumptionList.add(new ExpressionTree(array[i]));
-                sourceAssumption.add("(" + array[i] + ")");
+                assumption.add(new ExpressionTree(array[i]));
+                builder.append(array[i]);
+                if (i < array.length - 2)  {
+                    builder.append(',');
+                }
             }
-            String[] buf = (array[array.length - 1].split("\\|-"));
-            A = "(" + buf[0] + ")";
-            pA = new ExpressionTree(buf[0]);
-            reader.lines().forEachOrdered(this::check);
+            assumption.add(new ExpressionTree((array[array.length - 1].split("\\|-"))[0]));
+            List<ExpressionTree> oldProve = new ArrayList<>();
+            reader.lines().forEachOrdered(s->oldProve.add(new ExpressionTree(s)));
+            builder.append("|-").append(assumption.get(assumption.size() - 1).asString()).append("->" + oldProve.get(oldProve.size() - 1).asString());
+            writer.println(builder.toString());
+            deduction(assumption,oldProve).forEach(writer::println);
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-
-    private void check(String s) {
-        ExpressionTree expr = new ExpressionTree(s);
+    List<String> deduction(List<ExpressionTree> assumptions, List<ExpressionTree> oldProve) {
+        List<String> ans = new ArrayList<>();
+        A = assumptions.get(assumptions.size() - 1);
+        assumptionList = assumptions.subList(0,assumptions.size() -1);
+        oldProve.forEach(s->{ans.addAll(check(s));});
+        return ans;
+    }
+    private List<String> check(ExpressionTree expr) {
         int num = checkAxioms(expr);
-        s = "(" + s + ")";
+        List<String> ans = new ArrayList<>();
+        String s = expr.asString();
         if (num != 0) {
 
-            writer.println(s);
-            writer.println(s + "->" + A + "->" + s);
+            ans.add(s);
+            ans.add(s + "->" + A.asString()+ "->" + s);
 
 
         } else if ((num = checkAS(expr)) != -1) {
-            String tmp = sourceAssumption.get(num);
-            writer.println(tmp + "->" + A + "->" + tmp);
-            writer.println(tmp);
+            String tmp = assumptionList.get(num).asString();
+            ans.add(tmp + "->" + A.asString() + "->" + tmp);
+            ans.add(tmp);
         } else {
 
-            if (expr.equals(pA)) {
+            if (expr.equals(A)) {
 
-                writer.println(s + "->" + s + "->" + s);
-                writer.println(String.format("(%1$S->(%1$S->%1$S))->(%1$S->(%1$S->%1$S)->%1$S)->(%1$S->%1$S)", s));
-                writer.println(String.format("(%1$S->(%1$S->%1$S)->%1$S)->(%1$S->%1$S)", s));
-                writer.println(String.format("%1$S->(%1$S->%1$S)->%1$S", s));
+                ans.add(s + "->" + s + "->" + s);
+                ans.add(String.format("(%1$S->(%1$S->%1$S))->(%1$S->(%1$S->%1$S)->%1$S)->(%1$S->%1$S)", s));
+                ans.add(String.format("(%1$S->(%1$S->%1$S)->%1$S)->(%1$S->%1$S)", s));
+                ans.add(String.format("%1$S->(%1$S->%1$S)->%1$S", s));
 
 
             } else {
                 Pair pair = checkMP(expr);
                 if (pair != null) {
-                    String first = "(" + sourceProof.get(pair.first - 1) + ")";
-                    writer.println(String.format("(%1$S->%2$S)->(%1$S->%2$S->%3$S)->(%1$S->%3$S)", A, first, s));
-                    writer.println(String.format("(%1$S->%2$S->%3$S)->(%1$S->%3$S)", A, first, s));
+                    String first =  proofList.get(pair.first - 1).asString();
+                    ans.add(String.format("(%1$S->%2$S)->(%1$S->%2$S->%3$S)->(%1$S->%3$S)", A.asString(), first, s));
+                    ans.add(String.format("(%1$S->%2$S->%3$S)->(%1$S->%3$S)", A.asString(), first, s));
 
                 } else {
                     System.err.println("Something wrong");
@@ -88,9 +94,10 @@ public class Task2 extends ExpressionParser {
 
         }
 
-        writer.println(A + "->" + s);
+        ans.add(A.asString() + "->" + s);
         proofList.add(expr);
-        sourceProof.add(s);
+
+        return ans;
 
     }
 

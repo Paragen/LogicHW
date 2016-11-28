@@ -22,15 +22,15 @@ public class AxiomTree extends ExpressionTree{
         if (first == null) {
             return first == second;
         }
-        if (first.isLeaf) {
-            if (map.containsKey(first.varName)) {
-                return check(map.get(first.varName),second);
+        if (first.isVariable()) {
+            if (map.containsKey(first.asString())) {
+                return check(map.get(first.asString()),second);
             } else {
-                map.put(first.varName,second);
+                map.put(first.asString(),second);
                 return true;
             }
         } else {
-            return first.equals(second)&&check(first.leftSon,second.leftSon,map)&&check(first.rightSon,second.rightSon,map);
+            return first.equals(second)&&check(first.getLeft(),second.getLeft(),map)&&check(first.getRight(),second.getRight(),map);
         }
     }
 }

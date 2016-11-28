@@ -32,7 +32,7 @@ public class ExpressionParser {
                 "!!a->a");
         return str;
     }
-
+    long parseTime = 0, checkTime = 0;
     void run(String in, String out) {
         try {
             final PrintWriter writer = new PrintWriter(new File(out));
@@ -42,7 +42,7 @@ public class ExpressionParser {
                 writer.println("(" + i + ") " + s + " (" + check(s) + ")");
             }
             writer.close();
-
+            System.out.println("parse: " + ((double)parseTime) / 1000 + " check: " + ((double)checkTime / 1000));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -50,7 +50,10 @@ public class ExpressionParser {
 
 
     private String check(String s) {
+        long in = System.currentTimeMillis();
         ExpressionTree curr = new ExpressionTree(s);
+        parseTime += System.currentTimeMillis() - in;
+        in = System.currentTimeMillis();
         String ans = "Не доказано";
         int num = checkAxioms(curr);
 
@@ -66,7 +69,7 @@ public class ExpressionParser {
         }
 
         proofList.add(curr);
-
+        checkTime += System.currentTimeMillis() - in;
         return ans;
     }
 
@@ -105,9 +108,6 @@ public class ExpressionParser {
     }
     public static void main(String[] args) {
 
-        new ExpressionParser().run("/home/ouroboros/lol1.in","/home/ouroboros/lol1.out");
-        new ExpressionParser().run("/home/ouroboros/lol2.in","/home/ouroboros/lol2.out");
-        new ExpressionParser().run("/home/ouroboros/lol3.in","/home/ouroboros/lol3.out");
         final String in = "/home/ouroboros/gitRepositories/logic2014/tests/HW1/" , out = "/home/ouroboros/";
         long inTime ;
         for (int i = 1; i < 7; ++i) {
