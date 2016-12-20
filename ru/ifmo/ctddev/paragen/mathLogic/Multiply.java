@@ -3,23 +3,21 @@ package ru.ifmo.ctddev.paragen.mathLogic;
 
 import java.util.Map;
 
-public class Conjunction extends Node{
-
-    Conjunction(Node first, Node second) {
+public class Multiply extends Node{
+    Multiply(Node first, Node second) {
         super(first, second);
-        priority = 3;
+        priority = 9;
     }
 
     @Override
     String asString() {
-        return "&";
+        return "*";
     }
 
     @Override
     boolean evaluate(Map<String, Boolean> values) {
-        return getLeft().evaluate(values)&&getRight().evaluate(values);
+        return false;
     }
-
 
     @Override
     protected String str() {

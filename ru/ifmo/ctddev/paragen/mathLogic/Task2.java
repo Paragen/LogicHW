@@ -88,7 +88,11 @@ public class Task2 extends ExpressionParser {
                     ans.add(String.format("(%1$S->%2$S->%3$S)->(%1$S->%3$S)", A.asString(), first, s));
 
                 } else {
-                    System.err.println("Something wrong");
+                    System.err.println("Something wrong with expression: " + s);
+                    for (ExpressionTree er:
+                         proofList) {
+                        System.err.println(er.asString());
+                    }
                 }
             }
 
@@ -111,12 +115,7 @@ public class Task2 extends ExpressionParser {
     }
 
     public static void main(String[] args) {
-        String s = "";
-        for (int i = 1; i < 4; ++i) {
-            new Task2().run("/home/ouroboros/gitRepositories/logic2014/tests/HW2/contra" + s + ".in", "/home/ouroboros/contra"+ s + ".out");
-            new ExpressionParser().run("/home/ouroboros/contra" + s + ".out","/home/ouroboros/checkedContra" + s + ".out");
-            s = Integer.toString(i);
-        }
+        //removed
 
     }
 

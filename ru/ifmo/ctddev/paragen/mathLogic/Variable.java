@@ -26,4 +26,9 @@ public class Variable extends Node {
     boolean evaluate(Map<String, Boolean> values) {
         return values.get(name);
     }
+
+    @Override
+    protected String str() {
+        return asString();
+    }
 }

@@ -1,10 +1,7 @@
 package ru.ifmo.ctddev.paragen.mathLogic;
 
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,11 +11,11 @@ import java.util.stream.Collectors;
 public class Task3 {
     void run(String in, String out) {
         try {
-            PrintWriter writer = new PrintWriter(in);
-            BufferedReader reader = new BufferedReader(new FileReader(out));
+            PrintWriter writer = new PrintWriter(new File(out));
+            BufferedReader reader = new BufferedReader(new FileReader(in));
             ExpressionTree expr = new ExpressionTree(reader.readLine());
             explore(expr).forEach(writer::println);
-
+            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,6 +55,7 @@ public class Task3 {
                         values.put(variables.get(j),false);
                     }
                     tmp = true;
+                    break;
                 }
             }
             if (!tmp) {
@@ -134,12 +132,13 @@ public class Task3 {
         assumption.add(new ExpressionTree(first.asString()+"->"+second.asString()));
         assumption.add(new ExpressionTree("!" + second.asString()));
         List<String> oldProve = new ArrayList<>();
+        oldProve.addAll(assumption.stream().map(ExpressionTree::asString).collect(Collectors.toList()));
         oldProve.add(String.format("(%1$S->%2$S)->(%1$S->!%2$S)->!%1$S",first.asString(),second.asString()));
-        oldProve.add(String.format("%1$S->%2$S",first.asString(),second.asString()));
+        //oldProve.add(String.format("%1$S->%2$S",first.asString(),second.asString()));
         oldProve.add(String.format("(%1$S->!%2$S)->!%1$S",first.asString(),second.asString()));
         oldProve.add(String.format("!%1$S->%2$S->!%1$S",second.asString(),first.asString()));
-        oldProve.add("!"+second.asString());
-        oldProve.add(String.format("%1$S->%2$S",first.asString(),second.asString()));
+        //oldProve.add("!"+second.asString());
+        oldProve.add(String.format("%1$S->!%2$S",first.asString(),second.asString()));
         oldProve.add("!" + first.asString());
         oldProve = new Task2().deduction(assumption,oldProve.stream().map(ExpressionTree::new).collect(Collectors.toList()));
         assumption.remove(1);
@@ -153,12 +152,14 @@ public class Task3 {
             if (curr.head.isVariable()) {
                 map.put(curr.head.asString(), true);
             } else {
-                map.put(curr.head.getRight().asString(), false);
+                map.put(curr.head.getLeft().asString(), false);
             }
         }
         return map;
     }
 
 
-
+    public static void main(String[] args) {
+        //removed
+    }
 }

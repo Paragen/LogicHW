@@ -20,7 +20,7 @@ public class ExpressionParser {
     }
 
     protected List<String> setAxioms() {
-        List<String> str = Arrays.asList("(a->b->a",
+        List<String> str = Arrays.asList("(a->b->a)",
                 "(a->b)->(a->b->c)->(a->c)",
                 "a->b->a&b",
                 "a&b->a",
@@ -107,25 +107,7 @@ public class ExpressionParser {
         int first,second;
     }
     public static void main(String[] args) {
-
-        final String in = "/home/ouroboros/gitRepositories/logic2014/tests/HW1/" , out = "/home/ouroboros/";
-        long inTime ;
-        for (int i = 1; i < 7; ++i) {
-            if (i == 2) {
-                ++i;
-            }
-            System.out.println("Testing good " + i);
-            inTime = System.currentTimeMillis();
-            new ExpressionParser().run(in + "good" + i + ".in", out + "good" + i + ".out" );
-            System.out.println("Done in: " + (((double) System.currentTimeMillis() - inTime) / 1000) + " s");
-        }
-        for (int i = 1; i < 7; ++i) {
-            System.out.println("Testing wrong " + i);
-            inTime = System.currentTimeMillis();
-            new ExpressionParser().run(in + "wrong" + i + ".in", out + "wrong" + i + ".out" );
-            System.out.println("Done in: " + (((double) System.currentTimeMillis() - inTime) / 1000) + " s");
-
-        }
+       //removed
     }
 }
 

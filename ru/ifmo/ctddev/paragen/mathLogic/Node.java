@@ -1,26 +1,37 @@
 package ru.ifmo.ctddev.paragen.mathLogic;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-abstract class Node {
+abstract class Node implements Cloneable {
 
-    protected final Node leftSon, rightSon;
+    //protected final Node leftSon, rightSon;
+    List<Node> children;
     Node (Node first, Node second) {
-        leftSon = first;
-        rightSon = second;
+        children = new ArrayList<>();
+        if (first != null) {
+            children.add(first);
+        }
+        if (second != null) {
+            children.add(second);
+        }
+
     }
+
+    Node() {}
 
     boolean isVariable() {
         return false;
     }
 
     Node getLeft() {
-        return leftSon;
+        return children.get(0);
     }
 
     Node getRight() {
-        return rightSon;
+        return children.get(1);
     }
 
     static Node nodeFactory(String s, Node first, Node second) {
@@ -54,4 +65,34 @@ abstract class Node {
     abstract String asString();
 
     abstract boolean evaluate(Map<String,Boolean> values);
+
+    List<Node> getChildren() {
+        return children;
+    }
+
+    protected int priority;
+    public String toString() {
+        return wrap(priority - 1)  ;
+    }
+
+    protected String wrap(int priority) {
+        String s = str();
+        if (this.priority <= priority) {
+            s = "(" + s + ")";
+        }
+        return s;
+    }
+
+
+    abstract protected String str();
+
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

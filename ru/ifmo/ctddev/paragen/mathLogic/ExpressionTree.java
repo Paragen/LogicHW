@@ -65,6 +65,7 @@ public class ExpressionTree {
             default:
                 return -1;
         }
+
     }
 
     private Node parseExpr(ShiftedString expr, int priority) {
@@ -259,10 +260,27 @@ public class ExpressionTree {
     }
 
     private List<String> proveNegation(Node curr, Map<String, Boolean> values) {
+        List<String> answer = proveNode(curr.getLeft(),values);
+        String strA = answer.get(answer.size() - 1);
+        if (curr.evaluate(values)) {
+            return answer;
+        } else {
+            answer.add(String.format("%1$S->!%1$S->%1$S",strA));
+            answer.add(String.format("!%1$S->%1$S",strA));
+            answer.add(String.format("!%1$S->!%1$S->!%1$S",strA));
+            answer.add(String.format("(!%1$S->!%1$S->!%1$S)->(!%1$S->(!%1$S->!%1$S)->!%1$S)->(!%1$S->!%1$S)",strA));
+            answer.add(String.format("(!%1$S->(!%1$S->!%1$S)->!%1$S)->(!%1$S->!%1$S)",strA));
+            answer.add(String.format("!%1$S->(!%1$S->!%1$S)->!%1$S",strA));
+            answer.add(String.format("!%1$S->!%1$S",strA));
+            answer.add(String.format("(!%1$S->%1$S)->(!%1$S->!%1$S)->!!%1$S",strA));
+            answer.add(String.format("(!%1$S->!%1$S)->!!%1$S",strA));
+            answer.add(String.format("!!%1$S",strA));
+            return answer;
 
+        }
     }
 
-    private List<String> proveDisjunction(Node curr, Map<String, Boolean> values) {
+    private List<String> proveConjunction(Node curr, Map<String, Boolean> values) {
         boolean left = curr.getLeft().evaluate(values),right = curr.getRight().evaluate(values),middle = curr.evaluate(values);
         List<String> answer;
         answer = proveNode(curr.getLeft(),values);
@@ -285,12 +303,14 @@ public class ExpressionTree {
                 answer.add(String.format("(%1$S->%2$S)->(%1$S->!%2$S)->!%1$S",strCurr,strA));
                 answer.add(String.format("%1$S->%2$S",strCurr,strA));
                 answer.add(String.format("!%2$S->%1$S->!%2$S",strCurr,strA));
+                answer.add(String.format("%1$S->!%2$S",strCurr,strA));
                 answer.add(String.format("(%1$S->!%2$S)->!%1$S",strCurr,strA));
                 answer.add("!" + strCurr);
             } else {
                 answer.add(String.format("(%1$S->%2$S)->(%1$S->!%2$S)->!%1$S",strCurr,strB));
                 answer.add(String.format("%1$S->%2$S",strCurr,strB));
                 answer.add(String.format("!%2$S->%1$S->!%2$S",strCurr,strB));
+                answer.add(String.format("%1$S->!%2$S",strCurr,strB));
                 answer.add(String.format("(%1$S->!%2$S)->!%1$S",strCurr,strB));
                 answer.add("!" + strCurr);
             }
@@ -298,11 +318,125 @@ public class ExpressionTree {
         return answer;
     }
 
-    private List<String> proveConjunction(Node curr, Map<String, Boolean> values) {
+    private List<String> proveDisjunction(Node curr, Map<String, Boolean> values) {
+        boolean left = curr.getLeft().evaluate(values),right = curr.getRight().evaluate(values),middle = curr.evaluate(values);
+        List<String> answer;
+        answer = proveNode(curr.getLeft(),values);
+        String strA = answer.get(answer.size() - 1);
+        answer.addAll(proveNode(curr.getRight(),values));
+        String strB = answer.get(answer.size() - 1);
+        if (!left) {
+            strA = strA.substring(1);
+        }
+        if (!right) {
+            strB = strB.substring(1);
+        }
+        String strCurr = "(" + strA + curr.asString() + strB + ")";
 
+        if (middle) {
+            if (left) {
+                answer.add(strA + "->" + strA + "|" + strB);
+                answer.add(strCurr);
+            } else {
+                answer.add(strB + "->" + strA + "|" + strB);
+                answer.add(strCurr);
+            }
+        } else {
+            answer.add(String.format("(%1$S->%1$S)->(%2$S->%1$S)->(%1$S|%2$S->%1$S)",strA,strB));
+            //A->A
+            answer.add(String.format("(%1$S->(%1$S->%1$S))->(%1$S->(%1$S->%1$S)->%1$S)->(%1$S->%1$S)", strA));
+            answer.add(String.format("%1$S->%1$S->%1$S", strA));
+            answer.add(String.format("(%1$S->(%1$S->%1$S)->%1$S)->(%1$S->%1$S)", strA));
+            answer.add(String.format("%1$S->(%1$S->%1$S)->%1$S", strA));
+            answer.add(strA + "->" + strA );
+            answer.add(String.format("(%2$S->%1$S)->(%1$S|%2$S->%1$S)",strA,strB));
+            //!A,!B|-A->B
+
+            List<String> assumption = new ArrayList<>();
+            List<String> oldProve = new ArrayList<>();
+
+            assumption.add("!" + strB);
+            assumption.add("!" + strA);
+            assumption.add(strB);
+            oldProve.add("!" + strB);
+            oldProve.add(strB);
+            oldProve.add(strB + "->!" + strA + "->" + strB);
+            oldProve.add("!" + strA + "->" + strB);
+            oldProve.add("!" + strB+ "->!" + strA + "->!" + strB);
+            oldProve.add("!" + strA + "->!" + strB);
+            oldProve.add(String.format("(!%1$S->%2$S)->(!%1$S->!%2$S)->!!%1$S",strA,strB));
+            oldProve.add(String.format("(!%1$S->!%2$S)->!!%1$S",strA,strB));
+            oldProve.add(String.format("!!%1$S",strA));
+            oldProve.add(String.format("!!%1$S->%1$S",strA));
+            oldProve.add(strA);
+            answer.addAll(new Task2().deduction(assumption.stream().map(ExpressionTree::new).collect(Collectors.toList()), oldProve.stream().map(ExpressionTree::new).collect(Collectors.toList())));
+
+            answer.add(String.format("%1$S|%2$S->%1$S",strA,strB));
+            answer.add(String.format("!%1$S->%2$S->!%1$S",strA,strCurr));
+            answer.add(String.format("%2$S->!%1$S",strA,strCurr));
+            answer.add(String.format("(%1$S->%2$S)->(%1$S->!%2$S)->!%1$S",strCurr,strA));
+            answer.add(String.format("(%1$S->!%2$S)->!%1$S",strCurr,strA));
+            answer.add(String.format("!%1$S",strCurr));
+        }
+        return answer;
     }
 
     private List<String> proveImplication(Node curr, Map<String,Boolean> values) {
+        boolean left = curr.getLeft().evaluate(values),right = curr.getRight().evaluate(values),middle = curr.evaluate(values);
+        List<String> answer;
+        answer = proveNode(curr.getLeft(),values);
+        String strA = answer.get(answer.size() - 1);
+        answer.addAll(proveNode(curr.getRight(),values));
+        String strB = answer.get(answer.size() - 1);
+        if (!left) {
+            strA = strA.substring(1);
+        }
+        if (!right) {
+            strB = strB.substring(1);
+        }
+        String strCurr = "(" + strA + curr.asString() + strB + ")";
 
+        if (middle) {
+            if (right) {
+                answer.add(strB + "->" + strA + "->" + strB);
+                answer.add(strCurr);
+            } else {
+                List<String> assumption = new ArrayList<>();
+                List<String> oldProve = new ArrayList<>();
+                assumption.add("!" + strA);
+                assumption.add("!" + strB);
+                assumption.add(strA);
+                oldProve.add("!" + strA);
+                oldProve.add(strA);
+                oldProve.add(strA + "->!" + strB + "->" + strA);
+                oldProve.add("!" + strB + "->" + strA);
+                oldProve.add("!" + strA + "->!" + strB + "->!" + strA);
+                oldProve.add("!" + strB + "->!" + strA);
+                oldProve.add(String.format("(!%1$S->%2$S)->(!%1$S->!%2$S)->!!%1$S",strB,strA));
+                oldProve.add(String.format("(!%1$S->!%2$S)->!!%1$S",strB,strA));
+                oldProve.add(String.format("!!%1$S",strB));
+                oldProve.add(String.format("!!%1$S->%1$S",strB));
+                oldProve.add(strB);
+                answer.addAll(new Task2().deduction(assumption.stream().map(ExpressionTree::new).collect(Collectors.toList()), oldProve.stream().map(ExpressionTree::new).collect(Collectors.toList())));
+                answer.remove(answer.size() - 1);
+                answer.add(strCurr);
+            }
+        } else {
+            List<String> assumption = new ArrayList<>();
+            List<String> oldProve = new ArrayList<>();
+            assumption.add(strA);
+            assumption.add(strCurr);
+            oldProve.add(strCurr);
+            oldProve.add(strA);
+            oldProve.add(strB);
+            answer.addAll(new Task2().deduction(assumption.stream().map(ExpressionTree::new).collect(Collectors.toList()), oldProve.stream().map(ExpressionTree::new).collect(Collectors.toList())));
+            answer.add("!" + strB + "->" + strCurr + "->!" + strB);
+            answer.add(strCurr + "->!" + strB);
+            answer.add(String.format("(%1$S->%2$S)->(%1$S->!%2$S)->!%1$S",strCurr,strB));
+            answer.add(String.format("(%1$S->!%2$S)->!%1$S",strCurr,strB));
+            answer.add(String.format("!%1$S",strCurr));
+        }
+        return answer;
     }
+
 }
