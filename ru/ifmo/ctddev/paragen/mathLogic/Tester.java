@@ -27,6 +27,7 @@ public class Tester {
                     new Task5().run(args[1],args[2]);
                     break;
             }
+            return ;
         }
         final String in = "/home/ouroboros/gitRepositories/logic2014/tests/" , out = "/home/ouroboros/answers/";
         long inTime ;
